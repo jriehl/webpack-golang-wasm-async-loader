@@ -6,10 +6,8 @@ import (
 	"errors"
 	"syscall/js"
 
-	"../../../gobridge"
+	"github.com/jriehl/webpack-golang-wasm-async-loader/gobridge"
 )
-
-var global = js.Global()
 
 func add(this js.Value, args []js.Value) (interface{}, error) {
 	ret := 0
@@ -23,11 +21,11 @@ func add(this js.Value, args []js.Value) (interface{}, error) {
 }
 
 func err(this js.Value, args []js.Value) (interface{}, error) {
-	return nil, errors.New("This is an error")
+	return nil, errors.New("this is an error")
 }
 
 func main() {
-	c := make(chan struct{}, 0)
+	c := make(chan struct{})
 	println("Web Assembly is ready")
 	gobridge.RegisterCallback("add", add)
 	gobridge.RegisterCallback("raiseError", err)

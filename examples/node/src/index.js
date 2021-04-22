@@ -12,7 +12,7 @@ let p = new Promise(resolve =>
 const wasm = gobridge.default(p);
 
 async function run() {
-  let result = await wasm.add(1,2);
+  let result = await wasm.add(1,2,3);
 
   console.log(result);
 };
