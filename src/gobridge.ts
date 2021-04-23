@@ -35,10 +35,15 @@ export default function (getBytes: Promise<Buffer>) {
     {},
     {
       get: (_, key) => {
-        return (...args: any) => {
+        return (...args: any[]) => {
           return new Promise(async (resolve, reject) => {
             let run = () => {
-              let cb = (err: any, ...msg: any[]) => (err ? reject(err) : resolve(...msg));
+              /*
+              It may be the sleep deprivation, but it appears the only caller
+              of the callback will only pass two arguments back to it...see 
+              gobridge.go:17.
+              */
+              let cb = (err: any, msg: any) => (err ? reject(err) : resolve(msg));
               bridge[key].apply(undefined, [...args, cb]);
             };
   

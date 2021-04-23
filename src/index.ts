@@ -1,6 +1,6 @@
-import * as webpack from "webpack";
 import {readFileSync, unlinkSync} from "fs";
 import {basename, join} from "path";
+import {promisify} from 'util';
 import {execFile} from "child_process";
 
 const proxyBuilder = (filename: string) => `
@@ -9,30 +9,27 @@ export default gobridge(fetch('${filename}').then(response => response.arrayBuff
 
 const getGoBin = (root: string) => `${root}/bin/go`;
 
-function loader(this: webpack.loader.LoaderContext, contents: string) {
+async function loader(this: any, contents: string) {
   const cb = this.async();
 
   let resourceDirectory = this.resourcePath.substr(0, this.resourcePath.lastIndexOf("/"));
 
+  // let path: string;
+  const promisingExec = promisify(execFile);
+  let goRoot = (await promisingExec('/usr/bin/env', ['go', 'env', 'GOROOT'])).stdout.trim() || process.env.GOROOT;
+  let goPath = (await promisingExec('/usr/bin/env', ['go', 'env', 'GOPATH'])).stdout.trim() || process.env.GOPATH;
+  console.log(`GOROOT = ${goRoot}, GOPATH = ${goPath}`);
+
   const opts = {
     env: {
-      GO111MODULE: "on",
-      GOPATH: process.env.GOPATH,
-      GOROOT: process.env.GOROOT,
+      GOPATH: goPath,
+      GOROOT: goRoot,
       GOCACHE: join(__dirname, "./.gocache"),
       GOOS: "js",
       GOARCH: "wasm"
     },
     cwd: resourceDirectory
-};
-
-  // TODO: remove debug code...
-  execFile("/usr/bin/env", [], opts, (err, out) => {
-      if (out) {
-          console.log(out);
-          return;
-      }
-  });
+  };
 
   const goBin = getGoBin(opts.env.GOROOT);
   const outFile = `${this.resourcePath}.wasm`;
